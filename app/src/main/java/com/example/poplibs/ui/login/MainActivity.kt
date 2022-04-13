@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setSuccess() {
-        binding.loginElementsGroup.isVisible = false
+        binding.loginElementsWidgetGroup.isVisible = false
         binding.root.setBackgroundColor(Color.GRAY)
     }
 
@@ -98,13 +98,13 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun showProgress() {
-        binding.progressBarScreen.isVisible = true
+        binding.progressBarScreenConstraintLayout.isVisible = true
         hideKeyboard(this)
     }
 
 
     private fun hideProgress() {
-        binding.progressBarScreen.isVisible = false
+        binding.progressBarScreenConstraintLayout.isVisible = false
     }
 
     private fun hideKeyboard(activity: Activity) {
