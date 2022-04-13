@@ -1,19 +1,11 @@
 package com.example.poplibs.ui.login
 
 import android.os.Handler
+import com.example.poplibs.domain.LoginUseCase
 
 class LoginContract {
 
-    interface View {
-        fun setSuccess()
-        fun setError(error: String)
-        fun setInfoMessage(message: String)
-        fun showProgress()
-        fun hideProgress()
-    }
-
-    interface Presenter {
-        fun onAttach(view: View)
+    interface ViewModel {
         fun onLogin(login: String, password: String)
         fun onCredentialsConfirmation(login: String)
         fun onNewUserCreate(login: String, password: String)

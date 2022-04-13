@@ -4,24 +4,20 @@ import android.app.Activity
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import com.example.poplibs.app
-import com.example.poplibs.data.LoginUseCaseImpl
 import com.example.poplibs.databinding.ActivityMainBinding
-import com.example.poplibs.domain.LoginUseCase
+import com.example.poplibs.ui.AppState
 
-class MainActivity : AppCompatActivity(), LoginContract.View {
+class MainActivity : AppCompatActivity() {
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
-    private val presenter: LoginContract.Presenter by lazy {
-        restorePresenter()
-    }
+    private lateinit var viewModel: LoginViewModel
 
     companion object {
         const val MSG_NEW_USER_CREATED: String = "Учетная запись создана"
@@ -34,55 +30,80 @@ class MainActivity : AppCompatActivity(), LoginContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        presenter.onAttach(this)
+
+        viewModel = ViewModelProvider(
+            this,
+            LoginViewModelFactory (app.loginUseCase)
+        ).get(LoginViewModel::class.java)
+
+        viewModel.getData().observe(this) { state
+            ->
+            render(state)
+        }
         binding.enterButton.setOnClickListener {
-            presenter.onLogin(
+            viewModel.onLogin(
                 binding.loginEditText.text.toString(),
                 binding.passwordEditText.text.toString()
             )
         }
         binding.registrationButton.setOnClickListener {
-            presenter.onNewUserCreate(
+            viewModel.onNewUserCreate(
                 binding.loginEditText.text.toString(),
                 binding.passwordEditText.text.toString()
             )
         }
 
         binding.forgetPasswordButton.setOnClickListener {
-            presenter.onCredentialsConfirmation(
-                binding.loginEditText.text.toString(),
+            viewModel.onCredentialsConfirmation(
+                binding.loginEditText.text.toString()
             )
         }
     }
 
-    private fun restorePresenter(): LoginPresenter {
-        val presenter = lastCustomNonConfigurationInstance as? LoginPresenter
-        return presenter ?: LoginPresenter(app.loginUseCase)
+    private fun render(state: AppState?) {
+        when (state) {
+            is AppState.Success -> {
+                hideProgress()
+                setSuccess()
+            }
+            is AppState.Error -> {
+                hideProgress()
+                setError(state.error)
+            }
+            is AppState.Loading -> {
+                showProgress()
+            }
+            is AppState.InfoMessage -> {
+                hideProgress()
+                setInfoMessage(state.message)
+            }
+            else -> {}
+        }
     }
 
-    override fun onRetainCustomNonConfigurationInstance(): Any? {
-        return presenter
-    }
-
-    override fun setSuccess() {
+    private fun setSuccess() {
         binding.loginElementsGroup.isVisible = false
         binding.root.setBackgroundColor(Color.GRAY)
     }
 
-    override fun setError(error: String) {
+
+    private fun setError(error: String) {
         Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
 
-    override fun setInfoMessage(message: String) {
+
+    private fun setInfoMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun showProgress() {
+
+    private fun showProgress() {
         binding.progressBarScreen.isVisible = true
         hideKeyboard(this)
     }
 
-    override fun hideProgress() {
+
+    private fun hideProgress() {
         binding.progressBarScreen.isVisible = false
     }
 
